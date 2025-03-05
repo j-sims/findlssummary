@@ -56,16 +56,18 @@ def process_input(input_stream, workers=4):
     
     return dir_summary
 
-def print_summary(dir_summary):
-    """Prints the directory statistics in a human-readable format."""
+def print_summary(dir_summary, max_depth):
+    """Prints the directory statistics in a human-readable format, limiting output to max depth."""
     print(f"{'Directory':<40} {'Files':<10} {'Dirs':<10} {'Size':<15}")
     print("=" * 80)
     for directory, stats in sorted(dir_summary.items()):
-        print(f"{directory:<40} {stats['files']:<10} {stats['dirs']:<10} {format_size(stats['size']):<15}")
+        if max_depth == 0 or directory.count('/') <= max_depth:
+            print(f"{directory:<40} {stats['files']:<10} {stats['dirs']:<10} {format_size(stats['size']):<15}")
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Parse 'find -ls' output and summarize disk usage.")
     parser.add_argument('-f', '--file', type=str, help="Input file containing 'find -ls' output. If not provided, reads from stdin.")
+    parser.add_argument('-d', '--depth', type=int, default=0, help="Maximum depth to display in summary (0 for no limit).")
     args = parser.parse_args()
     
     if args.file:
@@ -74,4 +76,4 @@ if __name__ == "__main__":
     else:
         summary = process_input(sys.stdin, workers=8)
     
-    print_summary(summary)
+    print_summary(summary, args.depth)
